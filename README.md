@@ -1,5 +1,8 @@
 # ARIZON USB APIServer
 
+![Upload Python Package](https://github.com/mvig-robotflow/arizon_usb_apiserver/workflows/Upload%20Python%20Package/badge.svg)
+[![Pypi](https://img.shields.io/pypi/v/arizon_usb_apiserver.svg)](https://pypi.org/project/arizon_usb_apiserver/)
+
 An APIServer for ARIZON USB force sensors.
 
 ## Installation
@@ -14,6 +17,8 @@ Or download from PyPI:
 
 ```shell
 python -m pip install arizon-usb-apiserver
+```
+
 ## Get Started
 
 To read the sensor locally, use this snippet:

@@ -6,7 +6,7 @@ requires = open("requirements.txt", "r").readlines() if os.path.exists("requirem
 print("#-------------------    ", str(os.listdir("./")))
 setup(
     name="arizon-usb-apiserver",
-    version="0.1",
+    version="0.2",
     author="davidliyutong",
     author_email="davidliyutong@sjtu.edu.cn",
     description="Driver for Arizona USB Pressure Sensor",

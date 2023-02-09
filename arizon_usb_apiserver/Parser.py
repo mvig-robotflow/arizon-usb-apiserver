@@ -10,13 +10,10 @@ class Parser:
     PACKET_LENGTH: int = struct.calcsize(PACKET_FMT)
 
     buffer: BinaryIO = BytesIO()
+    index: int = -1
 
     def __init__(self) -> None:
-        self.buf: np.ndarray = np.zeros(shape=(self.BLOCK_SZ), dtype=np.uint8)
-        self.cursor: int = 0
-        self.start_reg: int = 0
-        self.length: int = 0
-        self.data_valid: bool = False
+        self.index = 0
 
     @staticmethod
     def sext24(d: bytes):
@@ -38,13 +35,13 @@ class Parser:
     def verify_packet(cls, data: bytes):
         return np.bitwise_xor.reduce(np.frombuffer(data[:-1], dtype=np.uint8)) == data[-1]
 
-    @classmethod
-    def parse_packet(cls, data: bytes) -> Union[None, np.uint16]:
-        st = struct.unpack(cls.PACKET_FMT, data)
+    def parse_packet(self, data: bytes) -> Union[None, np.uint16]:
+        st = struct.unpack(self.PACKET_FMT, data)
         addr = st[1] >> 4
         n_digit = st[1] % 0x10
-        value = cls.sext24(st[2])
-        return addr, value * 10 ** -n_digit
+        value = self.sext24(st[2])
+        self.index += 1
+        return addr, value * 10 ** -n_digit, self.index
 
     def sync(self, buffer: bytes) -> Tuple[bool, List[Union[None, np.ndarray]]]:
         self.buffer.write(buffer)
@@ -81,3 +78,6 @@ class Parser:
         self.state = "synced" if success else "unsynced"
         return res
 
+    def reset(self):
+        self.index = -1
+        self.buffer = BytesIO()

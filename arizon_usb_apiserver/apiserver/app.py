@@ -94,6 +94,7 @@ def update_arizon_sensor_thread():
                 {
                     "addr": data[0],
                     "f": data[1],
+                    "idx": data[2],
                     "ts": time.time()
                 },
                 block=False

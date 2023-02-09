@@ -10,6 +10,7 @@ class Sensor:
     def reset(self):
         self.conn.write(bytes([0xfe, 0xff, 0x01, 0x00, 0x00, 0x0d]))
         # self.conn.write(b'\xfe\xff\x01\x00\x00\x0d')
+        self.parser.reset()
         pass
 
     def read_once(self):
