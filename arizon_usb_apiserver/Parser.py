@@ -41,9 +41,10 @@ class Parser:
     @classmethod
     def parse_packet(cls, data: bytes) -> Union[None, np.uint16]:
         st = struct.unpack(cls.PACKET_FMT, data)
+        addr = st[1] >> 4
         n_digit = st[1] % 0x10
         value = cls.sext24(st[2])
-        return value * 10 ** -n_digit
+        return addr, value * 10 ** -n_digit
 
     def sync(self, buffer: bytes) -> Tuple[bool, List[Union[None, np.ndarray]]]:
         self.buffer.write(buffer)

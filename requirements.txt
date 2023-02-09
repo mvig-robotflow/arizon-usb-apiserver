@@ -1,2 +1,8 @@
 pyserial
-numpy<1.24
+numpy
+fastapi>=0.87.0
+uvicorn>=0.20.0
+pyyaml
+py-cli-interaction
+httpx
+attr
