@@ -1,4 +1,5 @@
 from serial import Serial
+
 from arizon_usb_apiserver import Sensor
 
 if __name__ == '__main__':

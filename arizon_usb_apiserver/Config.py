@@ -1,6 +1,7 @@
 import yaml
-from typing import Optional
 from dataclasses import dataclass, field
+from typing import Optional
+
 
 @dataclass
 class Config:

@@ -1,5 +1,7 @@
+.vscode
+.idea
+
 *.pyc
 *.egg-info
 
 dist
-arizon_config.yaml

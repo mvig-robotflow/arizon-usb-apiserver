@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package protocol;
+
+message ForcePacketRequest {
+    uint64 timestamp =1;
+};
+
+message ForcePacketResponse {
+    uint32 addr = 1;
+    double f = 2;
+    uint64 index = 3;
+    uint64 sys_ts_ns = 4;
+    bool valid = 5;
+};
+
+message ForceSetFIFOStatusRequest {
+    bool status = 1;
+};
+
+message ForceGetFIFOStatusRequest {
+};
+
+message ForceResetCacheRequest {
+};
+
+message ForceStatusResponse {
+    bool status = 1;
+    string err = 2;
+}
+
+
+service ForcePacketService {
+    rpc SetFIFOStatus(ForceSetFIFOStatusRequest) returns (ForceStatusResponse) {}
+    rpc GetFIFOStatus(ForceGetFIFOStatusRequest) returns (ForceStatusResponse) {}
+    rpc GetPacket (ForcePacketRequest) returns (ForcePacketResponse) {}
+    rpc GetPacketStream (ForcePacketRequest) returns (stream ForcePacketResponse) {}
+    rpc ResetPacketCache (ForceResetCacheRequest) returns (ForceStatusResponse) {}
+};

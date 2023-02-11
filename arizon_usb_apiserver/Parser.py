@@ -1,7 +1,8 @@
 import numpy as np
 import struct
-from typing import List, Tuple, BinaryIO, Union
 from io import BytesIO
+from typing import List, Tuple, BinaryIO, Union
+
 
 class Parser:
     ADDR = 0xfe

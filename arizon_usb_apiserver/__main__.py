@@ -1,7 +1,8 @@
 import argparse
 import sys
-import arizon_usb_apiserver.cmd  as cmd
+
 import arizon_usb_apiserver.apiserver as apiserver
+import arizon_usb_apiserver.cmd as cmd
 
 parser = argparse.ArgumentParser()
 

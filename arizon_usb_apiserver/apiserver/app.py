@@ -1,142 +1,130 @@
-import logging
 # import multiprocessing as mp
 # import os
 # import os.path as osp
 # import signal
 import argparse
+import logging
+import queue
 import threading
 import time
-import queue
-from typing import List, Optional, Dict, Union
-
 import uvicorn
 from fastapi import FastAPI
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, RedirectResponse
 from serial import Serial
+from typing import List, Optional, Dict, Union
 
 from arizon_usb_apiserver import Config as SensorConfig
 from arizon_usb_apiserver import Sensor
 
 app = FastAPI()
 
-LOGGER: Optional[logging.Logger] = None
-CONFIG: Optional[SensorConfig] = None
-FORCE_DATA_QUEUE: Optional[queue.Queue] = None
-START_EVENT: Optional[threading.Event] = None
 
+class Application:
+    logger: logging.Logger
+    option: SensorConfig
+    start_fifo_ev: threading.Event
+    force_data_queue: queue.Queue
 
-def make_response(status_code, **kwargs):
-    data = {'code': status_code, 'timestamp': time.time()}
-    data.update(**kwargs)
-    json_compatible_data = jsonable_encoder(data)
-    resp = JSONResponse(content=json_compatible_data, status_code=status_code)
-    return resp
-
-
-@app.get("/")
-def root():
-    return RedirectResponse(url='/docs')
-
-
-@app.get("/v1/arizon/status")
-def get_status():
-    if START_EVENT.is_set():
-        return make_response(200, message="Force data collection is running", status=True)
-    else:
-        return make_response(200, message="Force data collection is stopped", status=False)
-
-
-@app.get("/v1/arizon/force")
-def get_force():
-    res = []
-    for _ in range(FORCE_DATA_QUEUE.qsize()):
-        if not FORCE_DATA_QUEUE.empty():
-            res.append(FORCE_DATA_QUEUE.get())
-    return make_response(200, data=res)
-
-
-@app.delete("/v1/arizon/force")
-def clean_cached_force():
-    global FORCE_DATA_QUEUE
-    for _ in range(FORCE_DATA_QUEUE.qsize()):
-        if not FORCE_DATA_QUEUE.empty():
-            FORCE_DATA_QUEUE.get(block=False)
-    return make_response(200, message="Force data queue cleaned")
-
-
-@app.put("/v1/arizon/force")
-def toggle_force(flag: bool):
-    global START_EVENT
-    if flag:
-        START_EVENT.set()
-    else:
-        START_EVENT.clear()
-    return make_response(200, message="Force data collection {}".format("started" if flag else "stopped"), status=flag)
-
-
-def update_arizon_sensor_thread():
-    global CONFIG, LOGGER, FORCE_DATA_QUEUE, START_EVENT
-
-    while True:
-        START_EVENT.wait()
-
-        conn = Serial("COM2", 115200)
-        sensor = Sensor(conn)
-        sensor.reset()
-        while True:
-            data = sensor.read_once()
-            if data is None:
-                continue
-            while FORCE_DATA_QUEUE.full():
-                FORCE_DATA_QUEUE.get(block=False)
-            FORCE_DATA_QUEUE.put(
-                {
-                    "addr": data[0],
-                    "f": data[1],
-                    "idx": data[2],
-                    "ts": time.time()
-                },
-                block=False
+    def __init__(self, cfg) -> None:
+        if isinstance(cfg, SensorConfig):
+            self.option = cfg
+        elif isinstance(cfg, str):
+            self.option = SensorConfig(cfg)
+        elif isinstance(cfg, argparse.Namespace):
+            self.option = SensorConfig(cfg.config)
+        else:
+            raise TypeError(
+                "cfg must be SensorConfig, str, or argparse.Namespace"
             )
-            if not START_EVENT.is_set():
-                conn.close()
-                break
 
+        self.logger = logging.getLogger("arizon.main")
+        self.start_fifo_ev = threading.Event()
+        self.force_data_queue = queue.Queue(maxsize=1024)
 
-def portal(cfg: SensorConfig):
-    # Recording parameters
-    global CONFIG, LOGGER, FORCE_DATA_QUEUE, START_EVENT
+    def start_thread(self):
+        self.logger.info(f"Start force data collection thread, serial port: {self.option.serial_port}, baudrate: {self.option.serial_baudrate}")
 
-    FORCE_DATA_QUEUE = queue.Queue(maxsize=1024)
-    CONFIG = cfg
-    START_EVENT = threading.Event()
+        def update_arizon_sensor_thread():
+            while True:
+                self.start_fifo_ev.wait()
 
-    # setting global parameters
-    logging.basicConfig(level=logging.INFO)
-    LOGGER = logging.getLogger("arizon.portal")
-    # Prepare system
-    LOGGER.info(f"arizon sensor service listen at {cfg.api_port}")
-    LOGGER.info(f"arizon sensor config {cfg}")
-    # Start threads
-    threading.Thread(target=update_arizon_sensor_thread, daemon=True).start()
+                conn = Serial(self.option.serial_port, self.option.serial_baudrate)
+                sensor = Sensor(conn)
+                sensor.reset()
+                while True:
+                    data = sensor.read_once()
+                    if data is None:
+                        continue
+                    while self.force_data_queue.full():
+                        self.force_data_queue.get(block=False)
+                    self.force_data_queue.put(
+                        {
+                            "addr": data[0],
+                            "f": data[1],
+                            "index": data[2],
+                            "sys_ts_ns": time.time_ns()
+                        },
+                        block=False
+                    )
+                    if not self.start_fifo_ev.is_set():
+                        conn.close()
+                        break
 
-    try:
-        # app.run(host='0.0.0.0', port=api_port)
-        uvicorn.run(app=app, port=cfg.api_port)
-    except KeyboardInterrupt:
-        LOGGER.info(f"portal() got KeyboardInterrupt")
-        return
+        threading.Thread(target=update_arizon_sensor_thread,
+                         daemon=True).start()
 
-def main(args):
-    portal(SensorConfig(args.config))
+    def shutdown(self):
+        return None
 
-def entry_point(argv):
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="./arizon_config.yaml")
-    run_args = parser.parse_args(argv[1:])
-    main(run_args)
+    def start_fifo(self) -> Optional[Exception]:
+        self.logger.info("Start force data collection")
+        self.start_fifo_ev.set()
+        return None
+
+    def stop_fifo(self) -> Optional[Exception]:
+        self.logger.info("Stop force data collection")
+        self.start_fifo_ev.clear()
+        return None
+
+    def clean_cached_force(self) -> Optional[Exception]:
+        for _ in range(self.force_data_queue.qsize()):
+            if not self.force_data_queue.empty():
+                self.force_data_queue.get(block=False)
+        return None
+
+    @property
+    def fifo_status(self) -> bool:
+        return self.start_fifo_ev.is_set()
+
+    def get(self) -> Optional[Dict[str, Union[int, float]]]:
+        try:
+            return self.force_data_queue.get(timeout=1e-2)
+        except queue.Empty:
+            return None
+
+        except Exception as e:
+            self.logger.error(f"Error: {e}")
+            return None
+
 
 if __name__ == '__main__':
     import sys
-    entry_point(sys.argv)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, default="./hipnuc_config.yaml")
+    run_args = parser.parse_args(sys.argv[1:])
+
+    logging.basicConfig(level=logging.INFO)
+
+    app = Application(run_args)
+    app.start_thread()
+
+    app.start_fifo_ev.set()
+
+    try:
+        while True:
+            print(app.get())
+
+    except KeyboardInterrupt as e:
+        app.shutdown()

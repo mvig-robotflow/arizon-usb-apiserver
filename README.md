@@ -21,6 +21,10 @@ python -m pip install arizon-usb-apiserver
 
 ## Get Started
 
+The apiserver operates in two modes: RESTful and gRPC. They share the same configuration schema.
+
+### Basics
+
 To read the sensor locally, use this snippet:
 
 ```python
@@ -41,11 +45,22 @@ To generate configuration from command line interaction run:
 python -m arizon_usb_apiserver configure
 ```
 
-To launch the apiserver, run:
+### RESTful
+
+To launch the apiserver in RESTful mode, set the `API_SERVER_RESTFUL` to `1` before run:
+
 
 ```shell
-python -m arizon_usb_apiserver apiserver
+export API_SERVER_RESTFUL=1
 ```
+
+Or run with variable
+
+```shell
+API_SERVER_RESTFUL=1 python -m arizon_usb_apiserver apiserver
+```
+
+> Powershell: `Set-Item -Path Env:API_SERVER_RESTFUL -Value 1`
 
 Init sensor
 
@@ -71,16 +86,36 @@ curl -X 'PUT' \
   -H 'accept: application/json'
 ```
 
+## gRPC
+
+Run this command
+
+```shell
+python -m arizon_usb_apiserver apiserver
+```
+
 ## Generate Client
 
-First launch the apiserver, then run `openapi-python-client`
+### Restful
+
+First launch the apiserver, then run `openapi-python-client`:
 
 ```shell
 openapi-python-client generate --url http://127.0.0.1:8080/openapi.json
-rm -rf ./arizon_usb_driver/client
-mv fast-api-client/fast_api_client ./arizon_usb_driver/client
+rm -rf ./arizon_usb_driver/client/restful
+mv fast-api-client/fast_api_client ./arizon_usb_driver/client/restful
 rm -rf ./fast-api-client
 ```
+
+### GRPC
+
+First `cd arizon_usb_apiserver/grpc`, then run:
+
+```shell
+python -m grpc_tools.protoc -I../../manifests/protos --python_out=. --pyi_out=. --grpc_python_out=. ../../manifests/protos/force_packet.proto
+```
+
+You might need to replace `import force_packet_pb2 as force__packet__pb2` with `import arizon_usb_apiserver.grpc.force_packet_pb2 as force__packet__pb2`
 
 ## Serial Protocol
 
