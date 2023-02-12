@@ -14,6 +14,7 @@ setup(
         "arizon_usb_apiserver",
         "arizon_usb_apiserver.apiserver",
         "arizon_usb_apiserver.client",
+        "arizon_usb_apiserver.client.restful",
         "arizon_usb_apiserver.cmd"
         
     ],
