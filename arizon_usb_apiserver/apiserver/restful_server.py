@@ -75,8 +75,6 @@ def main(args):
 
     APPLICATION.start_thread()
 
-    APPLICATION.start_fifo_ev.set()
-
     try:
         # app.run(host='0.0.0.0', port=api_port)
         uvicorn.run(app=controller, port=cfg.api_port)

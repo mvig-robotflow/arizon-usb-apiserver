@@ -47,8 +47,7 @@ python -m arizon_usb_apiserver configure
 
 ### RESTful
 
-To launch the apiserver in RESTful mode, set the `API_SERVER_RESTFUL` to `1` before run:
-
+To launch the apiserver in RESTful mode, set the `API_SERVER_RESTFUL` to `1` before run apiserver command:
 
 ```shell
 export API_SERVER_RESTFUL=1
@@ -62,29 +61,37 @@ API_SERVER_RESTFUL=1 python -m arizon_usb_apiserver apiserver
 
 > Powershell: `Set-Item -Path Env:API_SERVER_RESTFUL -Value 1`
 
-Init sensor
+Or you can directely run `apiserver.restful`
 
 ```shell
-curl -X 'PUT' \
-  'http://127.0.0.1:8080/v1/arizon/force?flag=true' \
-  -H 'accept: application/json'
+python -m arizon_usb_apiserver apiserver.restful
 ```
 
-Read sensor
+Here are some examples to test the apiserver using curl
 
-```shell
-curl -X 'GET' \
-  'http://127.0.0.1:8080/v1/arizon/force' \
-  -H 'accept: application/json'
-```
+- Init sensor
 
-Shutdown sensor
+  ```shell
+  curl -X 'PUT' \
+    'http://127.0.0.1:8080/v1/arizon/force?flag=true' \
+    -H 'accept: application/json'
+  ```
 
-```shell
-curl -X 'PUT' \
-  'http://127.0.0.1:8080/v1/arizon/force?flag=false' \
-  -H 'accept: application/json'
-```
+- Read sensor
+
+  ```shell
+  curl -X 'GET' \
+    'http://127.0.0.1:8080/v1/arizon/force' \
+    -H 'accept: application/json'
+  ```
+
+- Shutdown sensor
+
+  ```shell
+  curl -X 'PUT' \
+    'http://127.0.0.1:8080/v1/arizon/force?flag=false' \
+    -H 'accept: application/json'
+  ```
 
 ## gRPC
 
@@ -93,6 +100,30 @@ Run this command
 ```shell
 python -m arizon_usb_apiserver apiserver
 ```
+
+Or you can directely run `apiserver.grpc`
+
+```shell
+python -m arizon_usb_apiserver apiserver.grpc
+```
+
+## Testing with cli tools
+
+To test RESTful API, run:
+
+```shell
+python -m arizon_usb_apiserver test.restful
+```
+
+You will be asked to input API endpoint.
+
+To test gRPC API, run:
+
+```shell
+python -m arizon_usb_apiserver test.grpc
+```
+
+You will be asked to input API endpoint.
 
 ## Generate Client
 

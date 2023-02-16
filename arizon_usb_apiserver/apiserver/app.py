@@ -52,6 +52,8 @@ class Application:
                 conn = Serial(self.option.serial_port, self.option.serial_baudrate)
                 sensor = Sensor(conn)
                 sensor.reset()
+                while not self.force_data_queue.empty():
+                    self.force_data_queue.get_nowait()
                 while True:
                     data = sensor.read_once()
                     if data is None:
