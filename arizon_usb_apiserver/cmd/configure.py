@@ -17,10 +17,13 @@ def main(args):
                     "port": api_port,
                     "interface": api_interface
                 },
-                "serial": {
-                    "port": serial_port,
-                    "baudrate": serial_baudrate
-                },
+                "serial": [
+                    {
+                        "port": serial_port,
+                        "baudrate": serial_baudrate,
+                        "addr": serial_port
+                    },
+                ],
                 "debug": debug
             }
         }

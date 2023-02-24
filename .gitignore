@@ -1,5 +1,6 @@
 .vscode
 .idea
+arizon_data
 
 *.pyc
 *.egg-info

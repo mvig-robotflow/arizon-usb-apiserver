@@ -7,7 +7,7 @@ message ForcePacketRequest {
 };
 
 message ForcePacketResponse {
-    uint32 addr = 1;
+    string addr = 1;
     double f = 2;
     uint64 index = 3;
     uint64 sys_ts_ns = 4;
@@ -29,6 +29,11 @@ message ForceStatusResponse {
     string err = 2;
 }
 
+message ForceToggleRecordingRequest {
+    bool start = 1;
+    string tag = 2;
+}
+
 
 service ForcePacketService {
     rpc SetFIFOStatus(ForceSetFIFOStatusRequest) returns (ForceStatusResponse) {}
@@ -36,4 +41,5 @@ service ForcePacketService {
     rpc GetPacket (ForcePacketRequest) returns (ForcePacketResponse) {}
     rpc GetPacketStream (ForcePacketRequest) returns (stream ForcePacketResponse) {}
     rpc ResetPacketCache (ForceResetCacheRequest) returns (ForceStatusResponse) {}
+    rpc ToggleRecording (ForceToggleRecordingRequest) returns (ForceStatusResponse) {}
 };

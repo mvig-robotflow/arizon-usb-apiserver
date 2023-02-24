@@ -12,7 +12,7 @@ def main(args):
     logging.basicConfig(level=logging.INFO)
     cfg = SensorConfig(args.config)
     if cfg.valid is False:
-        logging.error("Invalid config file")
+        logging.error("invalid config file")
         exit(1)
 
     server = get_server(cfg)

@@ -8,7 +8,7 @@ import arizon_usb_apiserver.grpc.force_packet_pb2_grpc as force_packet_pb2_grpc
 from arizon_usb_apiserver.Config import Config as SensorConfig
 from arizon_usb_apiserver.apiserver.app import Application
 
-logger = logging.getLogger("hipnuc.server")
+logger = logging.getLogger("arizon.server")
 
 
 def create_packet(data: dict):
@@ -55,6 +55,14 @@ class ForcePacketService(force_packet_pb2_grpc.ForcePacketService):
         logger.info(f"ResetForcePacketCache: {request}")
         self.app.force_data_queue.queue.clear()
         return force_packet_pb2.ForceStatusResponse(status=True, err=str(None))
+
+    def ToggleRecording(self, request: force_packet_pb2.ForceToggleRecordingRequest, context):
+        logger.info(f"ToggleRecording: {request}")
+        if request.start:
+            err = self.app.start_recording(request.tag)
+        else:
+            err = self.app.stop_recording()
+        return force_packet_pb2.ForceStatusResponse(status=True, err=str(err))
 
 
 def get_server(cfg: SensorConfig):

@@ -22,6 +22,7 @@ def run():
         force_packet_pb2.ForcePacketRequest(timestamp=time.time_ns()))
     print("GetPacketStream client received: " + str(response))
 
+    start_t = time.time()
     try:
         with tqdm.tqdm() as pbar:
             while True:
@@ -31,6 +32,8 @@ def run():
                     continue
                 pbar.set_description(str(data.f) + ' - ' + str(data.index))
                 pbar.update(1)
+                if time.time() - start_t > 10:
+                    break
                 # print)
     except KeyboardInterrupt as e:
         response.cancel()
@@ -38,6 +41,14 @@ def run():
     response = stub.SetFIFOStatus(force_packet_pb2.ForceSetFIFOStatusRequest(
         status=False))
     print("SetStatus client received: " + str(response))
+
+    response = stub.ToggleRecording(force_packet_pb2.ForceToggleRecordingRequest(
+        start=True, tag='test-grpc'))
+    print("ToggleRecording client received: " + str(response))
+    time.sleep(5)
+    response = stub.ToggleRecording(force_packet_pb2.ForceToggleRecordingRequest(
+        start=False))
+    print("ToggleRecording client received: " + str(response))
 
 
 if __name__ == '__main__':

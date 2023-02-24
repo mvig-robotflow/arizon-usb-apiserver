@@ -1,17 +1,24 @@
 import yaml
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, List
+
+
+@dataclass
+class SerialConfig:
+    port: str
+    baudrate: int
+    addr: str = field(default='')
 
 
 @dataclass
 class Config:
     path: str = './arizon_config.yaml'
-    serial_port: str = None
-    serial_baudrate: int = 115200
-    api_port: str = 8080
+    serials: List[SerialConfig] = field(default_factory=list)
+    api_port: int = 8080
     api_interface: str = '0.0.0.0'
     debug: bool = False
     valid: bool = field(default=False, init=False)
+    data_path: str = field(default='./arizon_data', init=False)
 
     def __post_init__(self) -> None:
         err = self.load()
@@ -30,11 +37,11 @@ class Config:
 
             try:
                 cfg = cfg_dict['arizon_usb_apiserver']
-                self.serial_port = cfg['serial']['port']
-                self.serial_baudrate = cfg['serial']['baudrate'] if 'baudrate' in cfg['serial'] else 115200
+                self.serials = [SerialConfig(**s) for s in cfg['serials']]
                 self.api_port = cfg['api']['port']
                 self.api_interface = cfg['api']['interface'] if 'interface' in cfg['api'] else '0.0.0.0'
                 self.debug = cfg['debug']
+                self.data_path = cfg['data_path'] if 'data_path' in cfg else './arizon_data'
                 return None
 
             except Exception as e:
@@ -48,14 +55,19 @@ class Config:
             try:
                 with open(self.path, 'w') as f:
                     yaml.dump({
-                        "serial": {
-                            "port": self.serial_port,
-                            "baudrate": self.serial_baudrate
-                        },
+                        "serials": [
+                            {
+                                "port": s.port,
+                                "baudrate": s.baudrate,
+                                "addr": s.addr
+                            }
+                            for s in self.serials
+                        ],
                         "api": {
                             "port": self.api_port,
                             "interface": self.api_interface
-                        }
+                        },
+                        "data_path": self.data_path
                     }, f)
                     return None
             except:

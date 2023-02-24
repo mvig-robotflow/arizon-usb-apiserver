@@ -160,3 +160,20 @@ You might need to replace `import force_packet_pb2 as force__packet__pb2` with `
 - Status: 4 bits of address + 4 bits represents number of digits
 - Data: 3 bytes of signed integers, no digit, big-endian.
 - Checksum: xor() of first 5 bytes
+
+## Configuration
+
+Here is an template of configuration
+
+```yaml
+arizon_usb_apiserver: # Key
+  api: # Control API settings
+    interface: 0.0.0.0 # Listen interface
+    port: 8080 # Listen port
+  debug: false # Enable debug
+  serials: # Serial connections, can be a list
+    - baudrate: 115200 # Baudrate, default is 115200, no need to change
+      port: COM8 # Port name
+      addr: "dev1" # Friendly name
+  data_path: ./arizon_data # Path to save data
+```

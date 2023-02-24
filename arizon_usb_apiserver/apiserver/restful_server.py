@@ -31,9 +31,9 @@ def root():
 def get_status():
     global APPLICATION
     if APPLICATION.fifo_status:
-        return make_response(200, message="Force data collection is running", status=True)
+        return make_response(200, message="force data collection is running", status=True)
     else:
-        return make_response(200, message="Force data collection is stopped", status=False)
+        return make_response(200, message="force data collection is stopped", status=False)
 
 
 @controller.get("/v1/arizon/force")
@@ -46,7 +46,7 @@ def get_force():
 def clean_cached_force():
     global APPLICATION
     APPLICATION.clean_cached_force()
-    return make_response(200, message="Force data queue cleaned")
+    return make_response(200, message="force data queue cleaned")
 
 
 @controller.put("/v1/arizon/force")
@@ -56,7 +56,21 @@ def toggle_force(flag: bool):
         APPLICATION.start_fifo()
     else:
         APPLICATION.stop_fifo()
-    return make_response(200, message="Force data collection {}".format("started" if APPLICATION.fifo_status else "stopped"), status=flag)
+    return make_response(200, message="force data collection {}".format("started" if APPLICATION.fifo_status else "stopped"), status=flag)
+
+
+@controller.post("/v1/arizon/start")
+def start_recording(tag: str):
+    global APPLICATION
+    ret = APPLICATION.start_recording(tag)
+    return make_response(200, message="force data collection started", status=True, ret=str(ret))
+
+
+@controller.post("/v1/arizon/stop")
+def stop_recording():
+    global APPLICATION
+    ret = APPLICATION.stop_recording()
+    return make_response(200, message="force data collection stopped", status=False, ret=str(ret))
 
 
 def main(args):
@@ -65,7 +79,7 @@ def main(args):
 
     cfg = SensorConfig(args.config)
     if cfg.valid is False:
-        logging.error("Invalid config file")
+        logging.error("invalid config file")
         exit(1)
     APPLICATION = Application(cfg)
 
@@ -79,7 +93,7 @@ def main(args):
         # app.run(host='0.0.0.0', port=api_port)
         uvicorn.run(app=controller, port=cfg.api_port)
     except KeyboardInterrupt:
-        APPLICATION.logger.info(f"Got KeyboardInterrupt")
+        APPLICATION.logger.info(f"got KeyboardInterrupt")
         return
 
 
