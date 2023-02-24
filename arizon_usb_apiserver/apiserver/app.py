@@ -143,7 +143,7 @@ class Application:
 
         tagged_path = osp.join(self.option.data_path, tag)
         if not osp.exists(tagged_path):
-            os.makedirs(tagged_path)
+            os.makedirs(tagged_path, exist_ok=True)
 
         self.start_recording_ev.set()
         self.start_fifo_ev.clear()

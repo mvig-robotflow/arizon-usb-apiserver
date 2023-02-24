@@ -1,15 +1,25 @@
 import argparse
 import logging
 import time
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.encoders import jsonable_encoder
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from arizon_usb_apiserver import Config as SensorConfig
 from .app import Application
 
 controller = FastAPI()
+
+controller.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 APPLICATION: Application = None
 
@@ -91,7 +101,7 @@ def main(args):
 
     try:
         # app.run(host='0.0.0.0', port=api_port)
-        uvicorn.run(app=controller, port=cfg.api_port)
+        uvicorn.run(app=controller, port=cfg.api_port, host=cfg.api_interface)
     except KeyboardInterrupt:
         APPLICATION.logger.info(f"got KeyboardInterrupt")
         return
