@@ -89,7 +89,7 @@ def main(args):
 
     cfg = SensorConfig(args.config)
     if cfg.valid is False:
-        logging.error("invalid config file")
+        logging.error(f"invalid config file {args.config}")
         exit(1)
     APPLICATION = Application(cfg)
 
@@ -110,11 +110,10 @@ def main(args):
 def entry_point(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default="./arizon_config.yaml")
-    run_args = parser.parse_args(argv[1:])
+    run_args = parser.parse_args(argv)
     main(run_args)
 
 
 if __name__ == '__main__':
     import sys
-
-    exit(entry_point(sys.argv))
+    exit(entry_point(sys.argv[1:]))
