@@ -142,8 +142,9 @@ class Application:
             tag = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
         tagged_path = osp.join(self.option.data_path, tag)
-        if not osp.exists(tagged_path):
-            os.makedirs(tagged_path, exist_ok=True)
+        recording_path = osp.join(tagged_path, "arizon")
+        if not osp.exists(recording_path):
+            os.makedirs(recording_path, exist_ok=True)
 
         self.start_recording_ev.set()
         self.start_fifo_ev.clear()
@@ -154,7 +155,7 @@ class Application:
         def record_thread():
             self.logger.info(f"starting recording thread, tag: {tag}")
             handles = {
-                s.addr: open(osp.join(tagged_path, f"{s.addr}.csv"), "w") for s in self.option.serials
+                s.addr: open(osp.join(recording_path, f"{s.addr}.csv"), "w") for s in self.option.serials
             }
             while True:
                 data = self.get(recording=True)
