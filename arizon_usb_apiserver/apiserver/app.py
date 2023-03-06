@@ -157,6 +157,7 @@ class Application:
             handles = {
                 s.addr: open(osp.join(recording_path, f"{s.addr}.csv"), "w") for s in self.option.serials
             }
+            [h.write("index,sys_ts_ns,addr,f\n") for _, h in handles.items()]
             while True:
                 data = self.get(recording=True)
                 if data is None:
