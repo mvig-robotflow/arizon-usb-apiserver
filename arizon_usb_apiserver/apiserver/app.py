@@ -71,7 +71,7 @@ class Application:
                             "addr": str(data[0]) if addr is None or addr == "" else addr,
                             "f": data[1],
                             "index": data[2],
-                            "sys_ts_ns": time.time_ns()
+                            "sys_ts_ns": int(datetime.datetime.utcnow().timestamp() * 1e9) # time.time_ns()
                         },
                         block=False
                     )
