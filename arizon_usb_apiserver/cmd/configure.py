@@ -8,6 +8,7 @@ def main(args):
         api_port = must_parse_cli_int("Enter a port number", 1024, 65535, 8080)
         api_interface = must_parse_cli_string("Enter a interface", "0.0.0.0")
         serial_port = must_parse_cli_string("Enter a serial port")
+        addr = must_parse_cli_string("Enter a serial address", default="0")
         serial_baudrate = must_parse_cli_int("Enter a serial baudrate", 0, 921600, 115200)
         debug = must_parse_cli_bool("Debug mode", False)
 
@@ -17,11 +18,11 @@ def main(args):
                     "port": api_port,
                     "interface": api_interface
                 },
-                "serial": [
+                "serials": [
                     {
                         "port": serial_port,
                         "baudrate": serial_baudrate,
-                        "addr": serial_port
+                        "addr": addr
                     },
                 ],
                 "debug": debug
@@ -35,7 +36,8 @@ def main(args):
         else:
             continue
 
-    dest = must_parse_cli_string("Enter save destination", "./arizon_config.yaml")
+    dest = must_parse_cli_string("Enter save destination", "./"
+                                                           "_config.yaml")
     with open(dest, 'w') as f:
         yaml.dump(res, f)
 
